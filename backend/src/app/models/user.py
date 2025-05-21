@@ -19,4 +19,5 @@ class User(Base):
     # Relationships
     social_campaigns = relationship("SocialCampaign", back_populates="created_by")
     social_accounts = relationship("SocialAccount", back_populates="created_by")
+    
  
