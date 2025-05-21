@@ -8,7 +8,7 @@ from app.core.security import get_current_user
 from app.core.permissions import allow_all_authenticated
 from app.models.user import User
 from app.services.social_media import SocialMediaService
-from app.crud import social_media as social_media_crud
+from app.crud import social as social_media_crud
 from app.schemas.social import (
     SocialAccount, SocialAccountCreate, SocialAccountUpdate, SocialAccountList,
     SocialPost, SocialPostCreate, SocialPostUpdate, SocialPostList,
@@ -614,10 +614,11 @@ def create_social_campaign(
                     detail=f"Not enough permissions to use account {account_id} in campaign"
                 )
     
+    # Create campaign with user_id parameter
     campaign = social_media_crud.create_social_campaign(
-        db=db, 
-        campaign_in=campaign_in, 
-        user_id=current_user.id
+        db=db,
+        campaign_in=campaign_in,
+        user_id=current_user.id  # Using user_id instead of created_by_id
     )
     return campaign
 
