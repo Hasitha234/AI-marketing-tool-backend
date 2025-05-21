@@ -1,0 +1,97 @@
+name,email,company,job_title,industry,website_visits,time_spent,page_views,source,campaign,company_size,engagement_level,email_opens,email_clicks,form_submissions,tags,country,city
+John Smith,john.smith@example.com,Acme Tech,CEO,technology,45,320,18,website,organic,enterprise,high,8,5,2,decision_maker;enterprise,USA,New York
+Sarah Johnson,sarah.j@techinnovate.com,Tech Innovate,CTO,technology,38,280,15,linkedin,ads,enterprise,medium,6,3,1,technical;decision_maker,USA,San Francisco
+Michael Brown,m.brown@financecorp.com,Finance Corp,CFO,finance,29,210,12,referral,partner,large,high,10,7,3,finance;executive,UK,London
+Emily Davis,emily.davis@healthplus.org,Health Plus,Director,healthcare,22,180,9,google,search,mid-market,medium,5,2,1,healthcare;management,Canada,Toronto
+David Wilson,d.wilson@edutech.edu,EduTech,VP Marketing,education,35,260,14,twitter,social,mid-market,high,9,6,2,education;marketing,Australia,Sydney
+Jennifer Lee,jennifer@retailgroup.com,Retail Group,CMO,retail,31,230,11,facebook,campaign_spring,large,medium,7,4,2,retail;executive,USA,Chicago
+Robert Taylor,robert.t@manufacorp.com,ManuaCorp,COO,manufacturing,25,190,10,email,newsletter,enterprise,low,4,1,0,manufacturing;operations,Germany,Berlin
+Amanda Martinez,amanda@techsolutions.io,Tech Solutions,Product Manager,technology,42,300,16,website,demo_request,small,high,12,9,4,product;technical,USA,Austin
+Kevin Chen,kevin.chen@fintech.com,FinTech Inc,Sales Director,finance,33,250,13,conference,expo2023,mid-market,medium,6,3,1,sales;finance,Singapore,Singapore
+Lisa Wang,lisa.wang@medtech.com,MedTech,Research Director,healthcare,27,200,11,webinar,healthcare_innovation,large,high,8,5,2,research;healthcare,USA,Boston
+James Wilson,james@edusoftware.net,EduSoftware,Engineering Manager,education,36,270,14,linkedin,targeted,small,medium,5,2,1,engineering;education,Canada,Vancouver
+Maria Garcia,maria.g@retailchain.com,Retail Chain,Operations Director,retail,30,220,12,direct,mail_campaign,large,low,3,1,0,operations;retail,Spain,Madrid
+Thomas Johnson,thomas.j@industrialtool.com,Industrial Tools,CEO,manufacturing,39,290,15,referral,partner_program,mid-market,high,9,6,3,executive;manufacturing,USA,Detroit
+Laura Smith,laura.smith@techstart.io,TechStart,Founder,technology,47,340,19,angel_list,startup_campaign,small,high,11,8,4,founder;startup,USA,Seattle
+Daniel Brown,daniel@investmentfirm.com,Investment Firm,Managing Partner,finance,34,255,13,conference,finance_summit,large,medium,7,4,2,investment;finance,UK,Manchester
+Rachel Kim,rachel.kim@healthsystems.org,Health Systems,Medical Director,healthcare,26,195,10,medical_journal,healthcare_ads,enterprise,high,10,7,3,medical;healthcare,South Korea,Seoul
+Christopher Davis,chris.davis@learntech.edu,LearnTech,Academic Director,education,32,240,12,education_conference,edu_expo,mid-market,medium,6,3,1,academic;education,Australia,Melbourne
+Nicole Rodriguez,nicole@fashionretail.com,Fashion Retail,Marketing Director,retail,28,210,11,instagram,influencer_campaign,small,high,9,6,3,fashion;marketing,USA,Los Angeles
+Richard Wong,richard.w@manufacturingco.com,Manufacturing Co,Plant Manager,manufacturing,23,175,9,industry_magazine,manufacturing_tech,large,low,4,1,0,plant;manufacturing,China,Shanghai
+Michelle Lee,michelle@softwaredev.com,Software Dev Inc,CTO,technology,41,310,17,github,developer_event,mid-market,high,12,9,4,developer;technical,USA,Portland
+Steven Chen,steven.chen@bankgroup.com,Bank Group,Financial Analyst,finance,27,200,10,financial_times,banking_newsletter,enterprise,medium,5,2,1,financial;analysis,Hong Kong,Hong Kong
+Karen Johnson,karen.j@hospital.org,City Hospital,Hospital Administrator,healthcare,24,185,9,healthcare_network,medical_conference,large,medium,6,3,2,medical;administrator,USA,Philadelphia
+Paul Williams,paul.w@collegetech.edu,College Tech,Dean of Technology,education,33,245,12,education_journal,higher_edu,mid-market,high,8,5,2,academic;technology,UK,Oxford
+Jessica Martin,jessica@retailonline.com,Retail Online,eCommerce Manager,retail,37,275,14,google,shopping_ads,small,high,11,8,3,ecommerce;digital,USA,Miami
+George Zhang,george.z@industrialmfg.com,Industrial Mfg,Production Director,manufacturing,29,215,11,industry_expo,manufacturing_show,large,medium,5,2,1,production;manufacturing,Germany,Munich
+Sophie Wilson,sophie@aitech.io,AI Tech,AI Researcher,technology,48,350,20,research_publication,ai_conference,mid-market,high,13,10,5,ai;research,Canada,Montreal
+William Brown,william.b@investmentbank.com,Investment Bank,VP Finance,finance,36,270,14,financial_conference,investment_summit,enterprise,medium,7,4,2,investment;finance,USA,New York
+Elizabeth Chen,elizabeth@healthcare.org,Healthcare Org,Medical Researcher,healthcare,29,220,11,medical_journal,research_grant,large,high,10,7,3,medical;research,Australia,Sydney
+Ryan Davis,ryan.d@edtech.edu,EdTech Innovations,Product Director,education,39,290,15,education_conference,edtech_expo,small,high,9,6,3,product;education,USA,San Francisco
+Julia Martinez,julia@retailtech.com,RetailTech,Digital Strategist,retail,34,255,13,digital_marketing,retail_innovation,mid-market,medium,6,3,1,digital;retail,Spain,Barcelona
+David Lee,david.lee@automanufacturing.com,Auto Manufacturing,Engineering Manager,manufacturing,31,235,12,industry_publication,engineering_conference,large,medium,5,2,1,automotive;engineering,Japan,Tokyo
+Amy Wilson,amy@cloudtech.io,Cloud Tech,DevOps Engineer,technology,44,330,18,github,cloud_conference,small,high,12,9,4,cloud;devops,USA,Seattle
+John Thompson,john.t@financialservices.com,Financial Services,Risk Manager,finance,32,240,12,risk_management,finance_webinar,mid-market,medium,6,3,1,risk;finance,Canada,Toronto
+Sarah Ahmed,sarah.a@medicalresearch.org,Medical Research,Research Director,healthcare,28,210,11,medical_publication,healthcare_grant,enterprise,high,9,6,3,research;medical,UK,Cambridge
+Michael Garcia,michael.g@universitytech.edu,University Tech,Department Chair,education,34,255,13,academic_journal,education_conference,large,medium,7,4,2,academic;technology,USA,Boston
+Jennifer Wong,jennifer.w@retailchain.com,Retail Chain,Store Operations,retail,26,195,10,retail_association,operations_training,small,low,4,1,0,retail;operations,Singapore,Singapore
+Robert Li,robert@manufacturingtech.com,Manufacturing Tech,Innovation Director,manufacturing,37,280,14,industry_innovation,manufacturing_expo,mid-market,high,10,7,3,innovation;manufacturing,China,Beijing
+Amanda Johnson,amanda.j@techinnovate.io,Tech Innovate,Software Architect,technology,46,340,19,developer_community,tech_conference,enterprise,high,13,10,5,software;architecture,USA,Austin
+Kevin Smith,kevin.smith@wealthmanagement.com,Wealth Management,Financial Advisor,finance,30,225,11,financial_planning,investment_seminar,small,medium,5,2,1,wealth;advisory,Australia,Melbourne
+Lisa Rodriguez,lisa.r@healthcare.org,Healthcare Services,Patient Services,healthcare,25,190,10,healthcare_network,patient_experience,mid-market,low,3,1,0,patient;healthcare,USA,Chicago
+James Chen,james.chen@edusystems.edu,EduSystems,IT Director,education,38,285,15,education_technology,it_conference,large,high,8,5,2,it;education,Canada,Vancouver
+Maria Brown,maria.brown@retailgroup.com,Retail Group,Customer Experience,retail,33,250,13,customer_experience,retail_innovation,enterprise,medium,6,3,1,customer;retail,UK,London
+Thomas Wilson,thomas.wilson@industrialequip.com,Industrial Equipment,Sales Director,manufacturing,28,210,11,industrial_magazine,sales_training,mid-market,medium,7,4,2,sales;industrial,Germany,Frankfurt
+Laura Chen,laura.chen@techplatform.io,Tech Platform,Product Manager,technology,49,365,21,product_hunt,tech_launch,small,high,14,11,5,product;platform,USA,San Diego
+Daniel Garcia,daniel.garcia@investmentfirm.com,Investment Firm,Portfolio Manager,finance,35,260,13,investment_journal,portfolio_conference,large,medium,8,5,2,portfolio;investment,Spain,Madrid
+Rachel Davis,rachel.davis@healthnetwork.org,Health Network,Network Director,healthcare,27,205,10,healthcare_conference,network_expansion,enterprise,high,11,8,4,network;healthcare,USA,Houston
+Christopher Wilson,chris.wilson@educollege.edu,Education College,Program Director,education,31,235,12,education_journal,program_development,mid-market,medium,6,3,1,program;education,UK,Edinburgh
+Nicole Lee,nicole.lee@fashionbrand.com,Fashion Brand,Brand Manager,retail,29,220,11,fashion_magazine,brand_campaign,small,high,10,7,3,brand;fashion,France,Paris
+Richard Johnson,richard.johnson@automanufacturer.com,Auto Manufacturer,Production Manager,manufacturing,24,180,9,manufacturing_association,production_efficiency,large,low,4,1,0,auto;production,USA,Detroit
+Michelle Garcia,michelle.garcia@softwaresolutions.io,Software Solutions,UX Designer,technology,43,320,17,design_community,ux_conference,mid-market,high,12,9,4,ux;design,Canada,Toronto
+Steven Brown,steven.brown@financialgroup.com,Financial Group,Compliance Officer,finance,31,235,12,compliance_network,financial_regulation,enterprise,medium,5,2,1,compliance;financial,USA,Chicago
+Karen Martinez,karen.martinez@medicalcenter.org,Medical Center,Clinical Director,healthcare,30,225,11,medical_association,clinical_conference,large,high,9,6,3,clinical;medical,Spain,Barcelona
+Paul Chen,paul.chen@techuniversity.edu,Tech University,Research Professor,education,37,275,14,academic_research,education_grant,mid-market,high,10,7,3,research;academic,USA,Boston
+Jessica Thompson,jessica.thompson@ecommerce.com,E-Commerce Shop,Digital Marketing,retail,39,290,15,digital_strategy,ecommerce_optimization,small,high,12,9,4,digital;ecommerce,UK,Manchester
+George Williams,george.williams@industrialautomation.com,Industrial Automation,Automation Engineer,manufacturing,32,240,12,engineering_magazine,automation_expo,large,medium,6,3,1,automation;industrial,Germany,Hamburg
+Sophie Johnson,sophie.johnson@datasci.io,Data Science Tech,Data Scientist,technology,50,375,22,data_conference,ai_summit,mid-market,high,15,12,6,data;science,USA,San Francisco
+William Garcia,william.garcia@bankingservices.com,Banking Services,Branch Manager,finance,34,255,13,banking_association,branch_operations,enterprise,medium,7,4,2,banking;management,Canada,Montreal
+Elizabeth Smith,elizabeth.smith@healthcaresolutions.org,Healthcare Solutions,Solutions Architect,healthcare,28,210,11,healthcare_technology,solutions_conference,large,high,11,8,4,solutions;healthcare,Australia,Brisbane
+Ryan Wilson,ryan.wilson@learningsystems.edu,Learning Systems,Educational Technologist,education,40,300,16,edtech_magazine,learning_conference,small,high,9,6,3,learning;technology,USA,Portland
+Julia Brown,julia.brown@retailanalytics.com,Retail Analytics,Analytics Director,retail,35,260,13,analytics_conference,retail_data,mid-market,medium,8,5,2,analytics;retail,UK,London
+David Martinez,david.martinez@manufacturingsystems.com,Manufacturing Systems,Systems Engineer,manufacturing,30,225,11,engineering_journal,manufacturing_systems,large,medium,5,2,1,systems;engineering,Japan,Osaka
+Amy Johnson,amy.johnson@cloudplatform.io,Cloud Platform,Platform Engineer,technology,45,335,18,developer_platform,cloud_summit,small,high,13,10,5,platform;cloud,USA,Seattle
+John Lee,john.lee@wealthadvisors.com,Wealth Advisors,Senior Advisor,finance,33,245,12,financial_advisors,wealth_management,mid-market,medium,6,3,1,wealth;advisory,Singapore,Singapore
+Sarah Wilson,sarah.wilson@medicaldevices.org,Medical Devices,Product Manager,healthcare,29,215,11,medical_innovation,device_expo,enterprise,high,10,7,3,medical;devices,USA,Minneapolis
+Michael Thompson,michael.thompson@educationtech.edu,Education Tech,CTO,education,35,260,13,education_innovation,tech_integration,large,medium,7,4,2,education;technology,Canada,Vancouver
+Jennifer Garcia,jennifer.garcia@retailplatform.com,Retail Platform,Platform Director,retail,27,200,10,retail_technology,platform_launch,small,low,4,1,0,retail;platform,USA,Miami
+Robert Johnson,robert.johnson@engineeringfirm.com,Engineering Firm,Engineering Director,manufacturing,38,285,14,engineering_excellence,manufacturing_innovation,mid-market,high,11,8,4,engineering;manufacturing,Germany,Berlin
+Amanda Brown,amanda.brown@techsecurity.io,Tech Security,Security Architect,technology,47,350,20,security_conference,cybersecurity_summit,enterprise,high,14,11,5,security;technology,USA,Washington DC
+Kevin Martinez,kevin.martinez@investmentgroup.com,Investment Group,Investment Analyst,finance,31,230,11,investment_analytics,financial_modeling,small,medium,5,2,1,investment;analysis,UK,London
+Lisa Wilson,lisa.wilson@healthcaretech.org,Healthcare Tech,Technical Director,healthcare,26,195,10,healthcare_it,technical_healthcare,mid-market,low,3,1,0,healthcare;technical,USA,Boston
+James Thompson,james.thompson@learningplatform.edu,Learning Platform,Platform Manager,education,39,290,15,learning_management,platform_education,large,high,9,6,3,learning;platform,Australia,Sydney
+Maria Chen,maria.chen@fashionretail.com,Fashion Retail,Retail Manager,retail,34,255,13,retail_management,fashion_retail,enterprise,medium,7,4,2,fashion;retail,France,Paris
+Thomas Davis,thomas.davis@industrialtech.com,Industrial Tech,Technology Director,manufacturing,29,220,11,industrial_technology,tech_manufacturing,mid-market,medium,8,5,2,industrial;technology,USA,Chicago
+Laura Johnson,laura.johnson@appdeveloper.io,App Developer,Lead Developer,technology,51,380,23,developer_network,app_conference,small,high,15,12,6,app;development,Canada,Toronto
+Daniel Wilson,daniel.wilson@financialtech.com,Financial Tech,FinTech Director,finance,36,270,14,fintech_innovation,financial_technology,large,medium,9,6,3,fintech;technology,UK,Edinburgh
+Rachel Brown,rachel.brown@telemedicine.org,Telemedicine,Telehealth Director,healthcare,28,210,11,telehealth_conference,medicine_technology,enterprise,high,12,9,4,telehealth;healthcare,USA,Los Angeles
+Christopher Garcia,christopher.garcia@onlinelearning.edu,Online Learning,E-Learning Director,education,32,240,12,elearning_conference,online_education,mid-market,medium,6,3,1,elearning;education,Australia,Melbourne
+Nicole Johnson,nicole.johnson@digitalretail.com,Digital Retail,Digital Director,retail,30,225,11,digital_retail,retail_transformation,small,high,11,8,4,digital;retail,USA,Seattle
+Richard Wilson,richard.wilson@smartmanufacturing.com,Smart Manufacturing,Innovation Manager,manufacturing,25,190,10,manufacturing_innovation,smart_factory,large,low,4,1,0,smart;manufacturing,Germany,Munich
+Michelle Thompson,michelle.thompson@dataanalytics.io,Data Analytics,Analytics Manager,technology,44,325,17,analytics_conference,data_summit,mid-market,high,13,10,5,data;analytics,USA,San Francisco
+Steven Garcia,steven.garcia@investmentadvisory.com,Investment Advisory,Advisory Director,finance,32,240,12,financial_advisory,investment_planning,enterprise,medium,5,2,1,advisory;investment,Hong Kong,Hong Kong
+Karen Wilson,karen.wilson@healthcareservices.org,Healthcare Services,Service Director,healthcare,31,230,11,healthcare_service,patient_care,large,high,10,7,3,healthcare;service,Canada,Montreal
+Paul Johnson,paul.johnson@distancelearning.edu,Distance Learning,Program Coordinator,education,38,285,14,distance_education,learning_programs,mid-market,high,9,6,3,distance;learning,UK,Manchester
+Jessica Davis,jessica.davis@omnichannel.com,Omnichannel Retail,Channel Manager,retail,40,300,15,retail_channels,omnichannel_strategy,small,high,12,9,4,omnichannel;retail,Spain,Madrid
+George Brown,george.brown@precisionmanufacturing.com,Precision Manufacturing,Quality Manager,manufacturing,33,245,12,quality_management,manufacturing_precision,large,medium,6,3,1,precision;quality,Japan,Tokyo
+Sophie Martinez,sophie.martinez@artificialintelligence.io,Artificial Intelligence,AI Developer,technology,52,390,24,ai_development,intelligence_conference,mid-market,high,16,13,7,ai;developer,USA,Austin
+William Wilson,william.wilson@hedgefund.com,Hedge Fund,Fund Manager,finance,37,275,14,fund_management,investment_strategy,enterprise,medium,8,5,2,hedge;fund,USA,New York
+Elizabeth Thompson,elizabeth.thompson@preventivemedicine.org,Preventive Medicine,Prevention Director,healthcare,29,220,11,preventive_healthcare,medicine_prevention,large,high,11,8,4,preventive;medicine,UK,Cambridge
+Ryan Brown,ryan.brown@adaptivelearning.edu,Adaptive Learning,Learning Scientist,education,41,305,16,learning_science,adaptive_education,small,high,10,7,3,adaptive;learning,USA,Boston
+Julia Garcia,julia.garcia@customerexperience.com,Customer Experience,CX Director,retail,36,270,14,customer_experience,retail_satisfaction,mid-market,medium,7,4,2,customer;experience,Australia,Sydney
+David Wilson,david.wilson@supplychainmanufacturing.com,Supply Chain Manufacturing,Supply Chain Manager,manufacturing,31,235,12,supply_chain,manufacturing_logistics,large,medium,5,2,1,supply;chain,China,Shanghai
+Amy Johnson,amy.johnson@softwareinnovation.io,Software Innovation,Innovation Lead,technology,46,345,19,software_innovation,tech_disruption,small,high,14,11,5,software;innovation,Canada,Vancouver
+John Brown,john.brown@riskmanagement.com,Risk Management,Risk Director,finance,34,255,13,risk_conference,management_financial,mid-market,medium,6,3,1,risk;management,Singapore,Singapore
+Sarah Garcia,sarah.garcia@patientcare.org,Patient Care,Care Coordinator,healthcare,30,225,11,patient_care,healthcare_coordination,enterprise,high,10,7,3,patient;care,USA,Chicago
+Michael Wilson,michael.wilson@interactivelearning.edu,Interactive Learning,Learning Designer,education,36,270,14,interactive_design,learning_engagement,large,medium,8,5,2,interactive;learning,Australia,Brisbane
+Jennifer Johnson,jennifer.johnson@inventorymanagement.com,Inventory Management,Inventory Director,retail,28,210,11,inventory_systems,retail_management,small,low,4,1,0,inventory;retail,USA,Dallas 
