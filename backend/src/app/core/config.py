@@ -43,6 +43,7 @@ class Settings(BaseSettings):
 
     # MODEL SETTINGS
     MODEL_DIR: str = os.getenv("MODEL_DIR", os.path.join(os.getcwd(), "models"))
+    TRAINED_MODEL_PATH: Optional[str] = os.getenv("TRAINED_MODEL_PATH", None)
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [

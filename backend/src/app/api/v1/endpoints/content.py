@@ -1,4 +1,5 @@
 from typing import Any, List, Optional
+import os
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Body, status, BackgroundTasks
 from sqlalchemy.orm import Session
 
@@ -11,12 +12,14 @@ from app.crud import content as content_crud
 from app.schemas.content import (
     Content,ContentList,
 )
+from app.core.config import settings
 
 router = APIRouter()
 
 # Get content generation service
 def get_content_service():
-    return ContentGenerationService()
+    # Path to the fine-tuned model from settings
+    return ContentGenerationService(model_path=settings.TRAINED_MODEL_PATH)
 
 # UI-focused content endpoints
 @router.post("/generate", response_model=dict)

@@ -31,6 +31,9 @@ sentencepiece>=0.1.99
 accelerate>=0.20.1
 bitsandbytes>=0.41.0
 peft>=0.4.0
+rouge-score
+bert-score
+wandb
 
 # API Integrations
 requests==2.31.0
