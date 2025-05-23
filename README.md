@@ -1,157 +1,172 @@
-# AI-marketing-tool
+# AI Marketing Tool
 
-## Authentication Backend API
+A powerful AI-driven marketing automation platform that combines intelligent lead scoring, content generation, chatbot functionality, and social media integration.
 
-This repository contains the backend authentication API for the AI Marketing Tool. The API provides user authentication, authorization, and other backend services for the marketing platform.
+## 🌟 Key Features
 
-## Deployment Instructions
+### 1. Intelligent Lead Scoring System
+- Hybrid scoring system combining rule-based and machine learning approaches
+- Real-time lead qualification and scoring (0-100)
+- Multi-factor analysis including:
+  - Demographic data
+  - Behavioral tracking
+  - Firmographic information
+- Advanced analytics dashboard
+- Lead activity monitoring
+- Automated lead routing
+
+### 2. AI-Powered Content Generation
+- Blog post generation
+- Social media content creation
+- Email campaign content
+- Content performance analytics
+
+### 3. Smart Chatbot Integration
+- 24/7 customer support automation
+- Intent recognition and smart responses
+- Lead qualification through conversation
+- Appointment scheduling
+- Integration with popular platforms
+- Customizable conversation flows
+
+### 4. Social Media Automation
+- Multi-platform posting capabilities
+- Content scheduling
+- Performance analytics
+- Engagement tracking
+- Automated response handling
+
+### 5. Analytics & Reporting
+- Comprehensive dashboard
+- Lead scoring insights
+- Conversion tracking
+- ROI measurement
+- Custom report generation
+- Real-time performance monitoring
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Docker and Docker Compose installed on the host machine
-- Git for cloning the repository
+- Docker and Docker Compose
+- Git
+- Python 3.10.0
+- PostgreSQL
 
-### Deployment Steps
+
+### Installation
 
 1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd AI-marketing-tool
-   ```
+```bash
+git clone <repository-url>
+cd AI-marketing-tool
+```
 
-2. Environment Variables (optional):
-   Create a `.env` file in the root directory with the following variables:
-   ```
-   SECRET_KEY=your-secure-secret-key
-   OPENAI_API_KEY=your-openai-api-key
-   ```
+2. Set up environment variables:
+Create a `.env` file in the root directory with the following variables:
+```env
+# Database Configuration
+POSTGRES_SERVER=localhost
+POSTGRES_USER=your_user
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=ai_marketing
+POSTGRES_PORT=5432
+
+# Security
+SECRET_KEY=your_secure_secret_key
+
+# API Keys
+HUGGINGFACE_TOKEN=your_huggingface_token
+
+
+
+# Google Cloud / Dialogflow
+GOOGLE_CLOUD_PROJECT_ID=your_project_id
+```
 
 3. Build and start the services:
-   ```
-   docker-compose up -d
-   ```
+```bash
+docker-compose up -d
+```
 
-4. The API will be available at:
-   ```
-   http://localhost:8000
-   ```
+4. Run database migrations:
+```bash
+docker-compose exec api alembic upgrade head
+```
 
-5. API Documentation available at:
-   ```
-   http://localhost:8000/docs
-   ```
+The API will be available at `http://localhost:8000`
 
-### Integration with Frontend
+## 📚 API Documentation
 
-For frontend developers, the API is now available at `http://localhost:8000/api/v1`. The following endpoints are available for authentication:
+Once the server is running, you can access:
+- Swagger UI documentation: `http://localhost:8000/docs`
+- ReDoc documentation: `http://localhost:8000/redoc`
 
-- **Register**: `POST /api/v1/auth/register`
-- **Login**: `POST /api/v1/auth/login`
-- **Get Current User**: `GET /api/v1/users/me`
+## 💻 Development
 
-Check the API documentation at `/docs` for full details and request/response schemas.
+For local development:
 
-## Development
+1. Create and activate a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-For local development without Docker, follow these steps:
+2. Install dependencies:-
+```bash
+pip install -r requirements.txt
+```
 
-1. Create and activate a virtual environment
-2. Install dependencies: `pip install -r requirements.txt`
-3. Navigate to the backend directory: `cd backend`
-4. Run the application: `python -m src.app.main`
+3. Navigate to the backend directory:
+```bash
+cd backend
+```
 
-## Troubleshooting
+4. Run the application:
+```bash
+python -m src.app.main
+```
 
-If you encounter issues with database connections, ensure that:
-1. PostgreSQL is running (check with `docker-compose ps`)
-2. The database credentials in the environment match those in `docker-compose.yml`
+## 🧪 Testing
 
-# AI Marketing Tool Project Status Report
+Run the test suite:
+```bash
+pytest
+```
 
-## Project Overview
+For chatbot testing:
+```bash
+python src/scripts/test_chatbot.py
+```
 
-The AI Marketing Tool provides a comprehensive suite of AI-powered marketing capabilities, including lead scoring, content generation, chatbot functionality, and social media integration.
+## 🔒 Security Features
 
-## Completed Features
+- JWT-based authentication
+- Role-based access control
+- Password hashing with bcrypt
+- HTTPS/TLS encryption
+- Rate limiting
+- Input validation
+- SQL injection protection
+- CORS protection
 
-### Lead Scoring System
-- [x] Lead and LeadScore models
-- [x] Scoring algorithm using machine learning
-- [x] Lead scoring API endpoints
-- [x] Lead activity tracking
+## 🎯 Performance Metrics
 
-### Content Generation
-- [x] OpenAI API integration
-- [x] Content generation for blogs, social media, and emails
-- [x] Content analytics tracking
-- [x] Content management API endpoints
-
-### Chatbot System
-- [x] BotPress integration
-- [x] Chatbot session management
-- [x] Message history and intent tracking
-- [x] Chatbot API endpoints
-
-### Social Media Integration
-- [x] Buffer API integration
-- [x] Social media scheduling
-- [x] Post analytics tracking
-- [x] Social media API endpoints
-
-### Authentication & Security
-- [x] JWT-based authentication
-- [x] Role-based access control
-- [x] Password hashing with bcrypt
-- [x] HTTPS/TLS encryption
-- [x] Rate limiting
-
-### Testing & Deployment
-- [x] Comprehensive API tests
-- [x] Integration tests
-- [x] Performance tests
-- [x] Security tests
-- [x] Docker deployment configuration
-- [x] Nginx configuration
-- [x] SSL certificate setup
-- [x] Monitoring with Prometheus and Grafana
-
-## Performance Metrics
-
-- API response times (average): < 100ms
+- API response times: < 100ms
 - Database query performance: < 50ms
 - Content generation time: < 5s
 - Chatbot response time: < 2s
-- System can handle 100+ concurrent users
+- System capacity: 100+ concurrent users
 
-## Security Measures
+## 📈 Deployment
 
-- All API endpoints require authentication
-- Passwords are hashed using bcrypt
-- JWT tokens with role-based scopes
-- HTTPS/TLS encryption
-- Rate limiting to prevent abuse
-- Input validation with Pydantic models
-- Database query parameterization to prevent SQL injection
-- CORS protection
+For production deployment, use the provided deployment script:
+```bash
+./deploy.sh
+```
 
-## Known Issues
+This will:
+1. Check prerequisites
+2. Build and deploy containers
+3. Run database migrations
+4. Verify deployment status
 
-1. OpenAI API occasional timeouts during high load
-2. Buffer API rate limits can be reached with high posting volume
-3. Some complex lead scoring calculations can be slow with large datasets
-
-## Next Steps
-
-1. Performance optimization for lead scoring algorithm
-2. Add more social media platforms (Twitter, LinkedIn)
-3. Enhance chatbot with more AI capabilities
-4. Add A/B testing for content
-5. Implement campaign management features
-6. Add more analytics dashboards
-
-## Deployment Status
-
-The system is ready for production deployment. Follow the instructions in DEPLOYMENT.md for detailed deployment steps.
-
-## Final Notes
-
-The AI Marketing Tool provides a solid foundation for AI-powered marketing automation. It's designed to be easily extended with additional features and integrations as needed.

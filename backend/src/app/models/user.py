@@ -19,5 +19,8 @@ class User(Base):
     # Relationships
     social_campaigns = relationship("SocialCampaign", back_populates="created_by")
     social_accounts = relationship("SocialAccount", back_populates="created_by")
+    chatbot_sessions = relationship("ChatbotSession", back_populates="user")
+    chatbot_messages = relationship("ChatbotMessage", back_populates="user")
+    contents = relationship("Content", back_populates="created_by")
     
  
