@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import PostgresDsn
+from pydantic import PostgresDsn, Field
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -44,6 +44,22 @@ class Settings(BaseSettings):
     # MODEL SETTINGS
     MODEL_DIR: str = os.getenv("MODEL_DIR", os.path.join(os.getcwd(), "models"))
     TRAINED_MODEL_PATH: Optional[str] = os.getenv("TRAINED_MODEL_PATH", None)
+
+    # Google Cloud / Dialogflow Configuration
+    GOOGLE_CLOUD_PROJECT_ID: str = os.getenv("GOOGLE_CLOUD_PROJECT_ID", "ai-marketing-chatbot-460708")
+    if not GOOGLE_CLOUD_PROJECT_ID:
+        raise ValueError("GOOGLE_CLOUD_PROJECT_ID environment variable must be set")
+    GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", None)
+    DIALOGFLOW_LANGUAGE_CODE: str = os.getenv("DIALOGFLOW_LANGUAGE_CODE", "en-US")
+    
+    # Chatbot Configuration
+    CHATBOT_SESSION_TIMEOUT: int = os.getenv("CHATBOT_SESSION_TIMEOUT", 1800)  # 30 minutes
+    CHATBOT_MAX_MESSAGE_LENGTH: int = os.getenv("CHATBOT_MAX_MESSAGE_LENGTH", 1000)
+    CHATBOT_CONFIDENCE_THRESHOLD: float = os.getenv("CHATBOT_CONFIDENCE_THRESHOLD", 0.5)
+    
+    # Integration URLs
+    CALENDAR_BOOKING_URL: Optional[str] = Field(None, env="CALENDAR_BOOKING_URL")
+    CRM_WEBHOOK_URL: Optional[str] = Field(None, env="CRM_WEBHOOK_URL")
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
