@@ -170,3 +170,34 @@ This will:
 3. Run database migrations
 4. Verify deployment status
 
+<<<<<<< HEAD
+=======
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 👥 Support
+
+For support and questions:
+- Email: n.t.de.a.samaranayake@gmail.com
+- Documentation: `/docs`
+- Issue Tracker: GitHub Issues
+
+## 🏢 Project Status
+
+The system is production-ready with all core features implemented. Future enhancements planned include:
+- Performance optimization for lead scoring
+- Additional social media platform integrations
+- Enhanced chatbot AI capabilities
+- A/B testing for content
+- Campaign management features
+- Extended analytics dashboards
+>>>>>>> 444b9497c4f6e7f6cd1be618b31a5a221875dbd8
