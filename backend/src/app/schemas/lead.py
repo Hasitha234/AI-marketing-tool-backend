@@ -61,6 +61,10 @@ class LeadScoreBase(BaseModel):
     confidence: float = Field(0.0, ge=0, le=1.0)
     model_version: Optional[str] = None
 
+    model_config = {
+        "protected_namespaces": ()
+    }
+
 class LeadScoreCreate(LeadScoreBase):
     lead_id: int
 
@@ -72,6 +76,10 @@ class LeadScoreUpdate(BaseModel):
     factors: Optional[Dict[str, Any]] = None
     confidence: Optional[float] = Field(None, ge=0, le=1.0)
     model_version: Optional[str] = None
+
+    model_config = {
+        "protected_namespaces": ()
+    }
 
 class LeadScore(LeadScoreBase):
     id: int

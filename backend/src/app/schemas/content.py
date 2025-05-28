@@ -29,8 +29,10 @@ class Content(ContentBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
+    model_config = {
+        "protected_namespaces": (),
+        "from_attributes": True
+    }
 
 # List model for pagination
 class ContentList(BaseModel):
