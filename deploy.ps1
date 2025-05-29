@@ -1,4 +1,3 @@
-# Default environment
 param(
     [string]$Environment = "development"
 )
