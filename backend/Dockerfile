@@ -7,7 +7,9 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    TZ=UTC
+    TZ=UTC \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Install system dependencies and cleanup in one layer to reduce image size
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -22,15 +24,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy and install requirements first to leverage Docker cache
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements files
+COPY requirements.txt requirements-dev.txt* ./
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt \
+    && if [ -f requirements-dev.txt ]; then pip install --no-cache-dir -r requirements-dev.txt; fi
 
 # Create necessary directories
-RUN mkdir -p /app/logs /app/models /app/certs
+RUN mkdir -p /app/logs /app/models /app/certs /app/tests
 
-# Copy the service account key
-COPY service-account-key.json /app/certs/
+# Copy the service account key (if exists)
+COPY service-account-key.json* /app/certs/
 
 # Copy the backend code
 COPY . .
@@ -51,4 +56,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/api/v1/health || exit 1
 
 # Command to run the application
-CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"] 
+CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--reload"] 

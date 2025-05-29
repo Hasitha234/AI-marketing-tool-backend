@@ -42,8 +42,8 @@ class Settings(BaseSettings):
     LINKEDIN_CLIENT_SECRET: str = os.getenv("LINKEDIN_CLIENT_SECRET", "")
 
     # MODEL SETTINGS
-    MODEL_DIR: str = os.getenv("MODEL_DIR", os.path.join(os.getcwd(), "models"))
-    TRAINED_MODEL_PATH: Optional[str] = os.getenv("TRAINED_MODEL_PATH", None)
+    MODEL_DIR: str = os.getenv("MODEL_DIR", os.path.join(os.getcwd(), "src", "content_model"))
+    TRAINED_MODEL_PATH: Optional[str] = os.getenv("TRAINED_MODEL_PATH", os.path.join(MODEL_DIR, "zephyr-marketing-model"))
 
     # Google Cloud / Dialogflow Configuration
     GOOGLE_CLOUD_PROJECT_ID: str = os.getenv("GOOGLE_CLOUD_PROJECT_ID", "ai-marketing-chatbot-460708")
