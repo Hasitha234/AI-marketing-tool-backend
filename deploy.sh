@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Default environment
 ENVIRONMENT=${1:-development}
 
