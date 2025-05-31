@@ -18,6 +18,7 @@ class Content(Base):
     ai_generated = Column(Boolean, default=True)
     generation_params = Column(JSON, nullable=True)  # Will store prompt, tone, etc.
     model_version = Column(String, nullable=True)
+    content_metadata = Column(JSON, nullable=True)  
     
     # Creator info
     created_by_id = Column(Integer, ForeignKey("users.id"))  # Updated to match User table name

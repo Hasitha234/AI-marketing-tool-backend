@@ -1,339 +1,512 @@
+# app/services/gemini_content_generation.py
+
 import os
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel, PeftConfig
-from typing import Dict, List, Optional, Any
 import logging
-from pathlib import Path
-import json
-from sqlalchemy.orm import Session
+import asyncio
+from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
+from datetime import datetime
+import json
+
+import google.genai as genai
+from google.genai.types import HarmCategory, HarmBlockThreshold, SafetySetting, GenerateContentConfig
+from sqlalchemy.orm import Session
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+from app.crud import content as content_crud
+from app.schemas.content import ContentCreate
+from app.core.config import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 @dataclass
-class GenerationConfig:
-    """Configuration for content generation parameters."""
+class GeminiGenerationConfig:
+    """Configuration for Gemini 2.0 content generation parameters"""
     temperature: float = 0.7
-    top_p: float = 0.9
-    top_k: int = 50
-    max_length: int = 1024
-    repetition_penalty: float = 1.1
-    max_new_tokens: int = 512
-
-class ContentGenerationService:
-    """Service for generating marketing content using fine-tuned Zephyr model."""
+    top_p: float = 0.8
+    top_k: int = 40
+    max_output_tokens: int = 1024
+    candidate_count: int = 1
     
-    MODEL_VERSION = "zephyr-7b-marketing-v1.0"
+    # Safety settings for Gemini 2.0
+    safety_settings: List[SafetySetting] = None
     
-    # Available tones for the UI
-    TONES = [
-        "Professional", "Casual", "Energetic", "Friendly", "Eco-conscious",
-        "Authoritative", "Conversational", "Persuasive", "Informative", "Creative"
-    ]
+    def __post_init__(self):
+        if self.safety_settings is None:
+            self.safety_settings = [
+                SafetySetting(
+                    category=HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                    threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                ),
+                SafetySetting(
+                    category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                    threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                ),
+                SafetySetting(
+                    category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                    threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                ),
+                SafetySetting(
+                    category=HarmCategory.HARM_CATEGORY_HARASSMENT,
+                    threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+                ),
+            ]
+
+class GeminiContentGenerationService:
+    """Content generation service using Google's Gemini 2.0 Flash API"""
     
-    # Available channels
-    CHANNELS = [
-        "Blog", "Social Media", "Email", "Website", "Advertisement", 
-        "Newsletter", "Press Release", "Product Description"
-    ]
-    
-    # Available industries
-    INDUSTRIES = [
-        "Technology", "Fashion", "Fitness", "Food & Beverage", "Healthcare",
-        "Finance", "Education", "Real Estate", "Automotive", "Travel"
-    ]
-
-    def __init__(self, model_path: Optional[str] = None, config: Optional[GenerationConfig] = None):
-        """Initialize the content generation service."""
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model = None
-        self.tokenizer = None
-        self.config = config or GenerationConfig()
+    def __init__(self, api_key: str, config: GeminiGenerationConfig = None):
+        self.api_key = api_key
+        self.config = config or GeminiGenerationConfig()
+        self.client = None
         
-        # Set model path
-        if model_path:
-            self.model_path = Path(model_path)
-        else:
-            self.model_path = Path(__file__).parent.parent.parent / "content_model" / "zephyr-marketing-lora"
-            
-        self._load_model()
-
-    def _load_model(self):
-        """Load the fine-tuned Zephyr model with LoRA adapters."""
-        try:
-            logger.info(f"Loading model from {self.model_path}")
-            
-            # Base model configuration
-            base_model_name = "HuggingFaceH4/zephyr-7b-beta"
-            
-            # Load tokenizer from base model
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                base_model_name,
-                trust_remote_code=True,
-                use_fast=True
-            )
-            
-            # Set padding token
-            if self.tokenizer.pad_token is None:
-                self.tokenizer.pad_token = self.tokenizer.eos_token
-                self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-            
-            # Load base model with optimizations
-            base_model = AutoModelForCausalLM.from_pretrained(
-                base_model_name,
-                torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
-                device_map="auto" if self.device == "cuda" else None,
-                trust_remote_code=True,
-                low_cpu_mem_usage=True
-            )
-            
-            # Check if LoRA adapters exist
-            if self.model_path.exists() and (self.model_path / "adapter_model.safetensors").exists():
-                logger.info("Loading LoRA adapters...")
-                
-                # Load the fine-tuned model with LoRA adapters
-                self.model = PeftModel.from_pretrained(
-                    base_model,
-                    str(self.model_path),
-                    torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
-                    device_map="auto" if self.device == "cuda" else None
-                )
-                logger.info("LoRA adapters loaded successfully")
-                
-            else:
-                logger.warning("LoRA adapters not found, using base model")
-                self.model = base_model
-            
-            # Set model to evaluation mode
-            self.model.eval()
-            
-            # Move to device if not using device_map
-            if self.device == "cpu":
-                self.model.to(self.device)
-            
-            logger.info(f"Model loaded successfully on {self.device}")
-            
-        except Exception as e:
-            logger.error(f"Error loading model: {str(e)}")
-            raise RuntimeError(f"Failed to load model: {str(e)}")
-
-    def _format_prompt_for_zephyr(self, prompt: str, tone: str, industry: Optional[str] = None, 
-                                  channel: Optional[str] = None) -> str:
-        """Format the prompt according to Zephyr's chat template."""
-        
-        # Build instruction
-        instruction_parts = [f"Content brief: {prompt}"]
-        
-        if tone:
-            instruction_parts.append(f"Tone: {tone}")
-        if channel:
-            instruction_parts.append(f"Channel: {channel}")
-        if industry:
-            instruction_parts.append(f"Industry: {industry}")
-        
-        instruction = "Generate marketing content with the following specifications: " + "; ".join(instruction_parts)
-        
-        # System message
-        system_message = "You are a helpful AI assistant specialized in creating high-quality marketing content. Generate engaging, persuasive, and brand-appropriate content based on the given specifications."
-        
-        # Format in Zephyr's chat format
-        formatted_prompt = f"<|system|>\n{system_message}</s>\n<|user|>\n{instruction}</s>\n<|assistant|>\n"
-        
-        return formatted_prompt
-
-    def generate_content(self, prompt: str, tone: str = "Professional", 
-                        industry: Optional[str] = None, channel: Optional[str] = None,
-                        max_length: Optional[int] = None, temperature: Optional[float] = None) -> str:
-        """Generate marketing content using the fine-tuned model."""
-        
-        if not self.model or not self.tokenizer:
-            raise RuntimeError("Model not loaded. Please check model initialization.")
-        
-        try:
-            # Use provided parameters or defaults
-            max_length = max_length or self.config.max_length
-            temperature = temperature or self.config.temperature
-            
-            # Format prompt for Zephyr
-            formatted_prompt = self._format_prompt_for_zephyr(prompt, tone, industry, channel)
-            
-            # Tokenize input
-            inputs = self.tokenizer(
-                formatted_prompt,
-                return_tensors="pt",
-                truncation=True,
-                max_length=max_length - self.config.max_new_tokens,  # Leave room for generation
-                padding=False
-            )
-            
-            # Move inputs to device
-            inputs = {key: value.to(self.device) for key, value in inputs.items()}
-            
-            # Generate content
-            with torch.no_grad():
-                outputs = self.model.generate(
-                    **inputs,
-                    max_new_tokens=self.config.max_new_tokens,
-                    temperature=temperature,
-                    top_p=self.config.top_p,
-                    top_k=self.config.top_k,
-                    repetition_penalty=self.config.repetition_penalty,
-                    do_sample=True,
-                    pad_token_id=self.tokenizer.pad_token_id,
-                    eos_token_id=self.tokenizer.eos_token_id,
-                    use_cache=True
-                )
-            
-            # Decode the generated text
-            generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-            
-            # Extract only the assistant's response
-            if "<|assistant|>" in generated_text:
-                assistant_response = generated_text.split("<|assistant|>")[-1].strip()
-            else:
-                # Fallback: remove the input prompt from the output
-                assistant_response = generated_text[len(formatted_prompt):].strip()
-            
-            # Clean up the response (remove any remaining special tokens or artifacts)
-            assistant_response = self._clean_generated_content(assistant_response)
-            
-            return assistant_response
-            
-        except Exception as e:
-            logger.error(f"Error generating content: {str(e)}")
-            raise RuntimeError(f"Content generation failed: {str(e)}")
-
-    def _clean_generated_content(self, content: str) -> str:
-        """Clean up generated content by removing artifacts and improving formatting."""
-        
-        # Remove common artifacts
-        artifacts_to_remove = [
-            "</s>", "<s>", "<|user|>", "<|assistant|>", "<|system|>",
-            "[INST]", "[/INST]", "<<SYS>>", "<</SYS>>"
+        # Define available options for the UI (matching your existing structure)
+        self.TONES = [
+            "professional", "casual", "friendly", "authoritative",
+            "conversational", "enthusiastic", "informative", "persuasive",
+            "formal", "creative", "technical", "empathetic"
         ]
         
-        for artifact in artifacts_to_remove:
-            content = content.replace(artifact, "")
+        self.CHANNELS = [
+            "blog", "ad_copy", "social", "email", "website", "newsletter",
+            "press_release", "product_description", "landing_page", "article"
+        ]
         
-        # Clean up extra whitespace and newlines
-        lines = [line.strip() for line in content.split('\n') if line.strip()]
-        content = '\n'.join(lines)
+        self.INDUSTRIES = [
+            "technology", "health_fitness", "business_finance", 
+            "lifestyle_travel", "education_career", "retail",
+            "healthcare", "finance", "real_estate", "automotive",
+            "food_beverage", "entertainment", "non_profit", "consulting"
+        ]
         
-        # Remove leading/trailing whitespace
+        # Content type specific configurations
+        self.content_configs = {
+            'blog': {
+                'max_tokens': 800,
+                'structure': 'introduction, main points, conclusion',
+                'style': 'informative and engaging'
+            },
+            'ad_copy': {
+                'max_tokens': 150,
+                'structure': 'hook, benefit, call-to-action',
+                'style': 'persuasive and compelling'
+            },
+            'social': {
+                'max_tokens': 100,
+                'structure': 'engaging hook, key message, hashtags',
+                'style': 'conversational and shareable'
+            },
+            'email': {
+                'max_tokens': 300,
+                'structure': 'subject line, greeting, body, call-to-action',
+                'style': 'personal and direct'
+            },
+            'website': {
+                'max_tokens': 400,
+                'structure': 'clear sections, benefits, action items',
+                'style': 'professional and clear'
+            },
+            'newsletter': {
+                'max_tokens': 500,
+                'structure': 'headline, key updates, resources, conclusion',
+                'style': 'informative and engaging'
+            }
+        }
+        
+        self._initialize_gemini()
+    
+    def _initialize_gemini(self):
+        """Initialize Gemini 2.0 client"""
+        try:
+            # Initialize the client with API key
+            self.client = genai.Client(api_key=self.api_key)
+            
+            logger.info("Gemini 2.0 Flash API initialized successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize Gemini 2.0 API: {str(e)}")
+            raise RuntimeError(f"Gemini initialization error: {str(e)}")
+    
+    def _build_prompt(self, keywords: str, content_type: str, tone: str, 
+                     industry: Optional[str] = None, additional_context: Optional[str] = None) -> str:
+        """Build optimized prompt for content generation"""
+        
+        content_config = self.content_configs.get(content_type, self.content_configs['blog'])
+        
+        # Base prompt structure
+        prompt_parts = [
+            f"You are an expert content writer specializing in {industry or 'general'} industry.",
+            f"Create {content_type} content with a {tone} tone.",
+            f"Target keywords: {keywords}",
+            "",
+            f"Content requirements:",
+            f"- Type: {content_type}",
+            f"- Tone: {tone}",
+            f"- Style: {content_config['style']}",
+            f"- Structure: {content_config['structure']}",
+            f"- Maximum length: approximately {content_config['max_tokens']} tokens",
+        ]
+        
+        if industry:
+            prompt_parts.append(f"- Industry focus: {industry}")
+        
+        if additional_context:
+            prompt_parts.append(f"- Additional context: {additional_context}")
+        
+        prompt_parts.extend([
+            "",
+            "Guidelines:",
+            "- Write engaging, original content",
+            "- Include the target keywords naturally",
+            "- Ensure content is valuable to the target audience",
+            "- Use appropriate formatting and structure",
+            "- Make it actionable and relevant",
+            "",
+            "Generate the content now:"
+        ])
+        
+        return "\n".join(prompt_parts)
+    
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        retry=retry_if_exception_type((Exception,))
+    )
+    async def generate_content_async(self, keywords: str, content_type: str = "blog", 
+                                   tone: str = "professional", industry: Optional[str] = None,
+                                   additional_context: Optional[str] = None) -> str:
+        """Generate content asynchronously with retry logic using Gemini 2.0"""
+        try:
+            if not keywords or not keywords.strip():
+                raise ValueError("Keywords cannot be empty")
+            
+            # Validate inputs
+            tone = tone if tone in self.TONES else "professional"
+            content_type = content_type if content_type in self.CHANNELS else "blog"
+            
+            # Build the prompt
+            prompt = self._build_prompt(keywords, content_type, tone, industry, additional_context)
+            
+            # Update generation config for specific content type
+            content_config = self.content_configs.get(content_type, self.content_configs['blog'])
+            
+            # Create generation config for Gemini 2.0
+            generation_config = GenerateContentConfig(
+                temperature=self.config.temperature,
+                top_p=self.config.top_p,
+                top_k=self.config.top_k,
+                max_output_tokens=min(content_config['max_tokens'], self.config.max_output_tokens),
+                candidate_count=1,
+                safety_settings=self.config.safety_settings
+            )
+            
+            # Generate content using Gemini 2.0 Flash
+            response = await self.client.aio.models.generate_content(
+                model="gemini-2.0-flash-exp",  # Updated to Gemini 2.0 Flash
+                contents=prompt,
+                config=generation_config
+            )
+            
+            # Extract the generated text
+            if response.candidates and len(response.candidates) > 0:
+                candidate = response.candidates[0]
+                if candidate.content and candidate.content.parts:
+                    generated_text = candidate.content.parts[0].text
+                    
+                    # Clean and validate the generated content
+                    cleaned_content = self._clean_generated_content(generated_text, content_type)
+                    
+                    logger.info(f"Successfully generated {len(cleaned_content.split())} words for {content_type}")
+                    return cleaned_content
+                else:
+                    raise RuntimeError("No text content in response")
+            else:
+                raise RuntimeError("No candidates in response from Gemini 2.0 API")
+                
+        except Exception as e:
+            logger.error(f"Content generation failed: {str(e)}")
+            raise RuntimeError(f"Content generation error: {str(e)}")
+    
+    def generate_content(self, keywords: str, content_type: str = "blog", 
+                        tone: str = "professional", industry: Optional[str] = None,
+                        additional_context: Optional[str] = None) -> str:
+        """Synchronous wrapper for content generation"""
+        return asyncio.run(self.generate_content_async(
+            keywords, content_type, tone, industry, additional_context
+        ))
+    
+    def _clean_generated_content(self, content: str, content_type: str) -> str:
+        """Clean and format generated content"""
+        if not content:
+            return content
+        
+        # Remove common artifacts from AI generation
         content = content.strip()
         
+        # Remove any instruction-like text at the beginning
+        lines = content.split('\n')
+        clean_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            # Skip lines that look like instructions or metadata
+            if not (line.startswith(('Here is', 'Here\'s', 'Based on', 'According to')) and len(clean_lines) == 0):
+                clean_lines.append(line)
+        
+        content = '\n'.join(clean_lines).strip()
+        
+        # Ensure content ends properly for certain types
+        if content_type in ['blog', 'article', 'newsletter']:
+            content = self._ensure_complete_sentences(content)
+        
         return content
-
-    def save_generated_content(self, db: Session, content: str, prompt: str, 
-                             tone: str, user_id: int, channel: Optional[str] = None, 
-                             industry: Optional[str] = None) -> Any:
-        """Save generated content to the database."""
+    
+    def _ensure_complete_sentences(self, content: str) -> str:
+        """Ensure content ends with complete sentences"""
+        if not content:
+            return content
         
-        from app.models.content import Content
+        content = content.strip()
+        sentence_endings = ['.', '!', '?']
         
-        # Create content object
-        db_content = Content(
-            title=prompt[:100] if len(prompt) > 100 else prompt,
-            body=content,
-            type=channel or "General",
-            ai_generated=True,
-            model_version=self.MODEL_VERSION,
-            generation_params={
+        # If content doesn't end with proper punctuation, try to fix it
+        if content and content[-1] not in sentence_endings:
+            # Find the last complete sentence
+            sentences = []
+            for ending in sentence_endings:
+                sentences.extend(content.split(ending))
+            
+            # Reconstruct with complete sentences only
+            if len(sentences) > 1:
+                complete_parts = []
+                for i, sentence in enumerate(sentences[:-1]):  # Exclude the last incomplete part
+                    if sentence.strip():
+                        complete_parts.append(sentence.strip())
+                
+                if complete_parts:
+                    # Find the original ending punctuation
+                    for ending in sentence_endings:
+                        if ending in content:
+                            return '. '.join(complete_parts) + '.'
+        
+        return content
+    
+    async def batch_generate_content_async(self, prompt_configs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+        """Generate content for multiple prompts asynchronously"""
+        tasks = []
+        
+        for config in prompt_configs:
+            task = self.generate_content_async(
+                keywords=config.get("keywords", config.get("prompt", "")),
+                content_type=config.get("content_type", config.get("channel", "blog")),
+                tone=config.get("tone", "professional"),
+                industry=config.get("industry"),
+                additional_context=config.get("additional_context")
+            )
+            tasks.append((task, config))
+        
+        results = []
+        for task, config in tasks:
+            try:
+                generated_content = await task
+                results.append({
+                    "status": "success",
+                    "keywords": config.get("keywords", config.get("prompt")),
+                    "content_type": config.get("content_type", config.get("channel")),
+                    "tone": config.get("tone"),
+                    "industry": config.get("industry"),
+                    "generated_content": generated_content,
+                    "word_count": len(generated_content.split()),
+                    "character_count": len(generated_content),
+                    "timestamp": datetime.now().isoformat()
+                })
+            except Exception as e:
+                results.append({
+                    "status": "error",
+                    "keywords": config.get("keywords", config.get("prompt")),
+                    "content_type": config.get("content_type", config.get("channel")),
+                    "tone": config.get("tone"),
+                    "error": str(e),
+                    "timestamp": datetime.now().isoformat()
+                })
+        
+        return results
+    
+    def batch_generate_content(self, prompt_configs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+        """Synchronous wrapper for batch content generation"""
+        return asyncio.run(self.batch_generate_content_async(prompt_configs))
+    
+    def save_generated_content(
+        self,
+        db: Session,
+        content: str,
+        prompt: str,
+        tone: str,
+        user_id: int,
+        channel: Optional[str] = None,
+        industry: Optional[str] = None,
+        additional_metadata: Optional[Dict] = None
+    ):
+        """Save generated content to database"""
+        try:
+            metadata = {
                 "prompt": prompt,
                 "tone": tone,
                 "industry": industry,
                 "channel": channel,
-                "model_version": self.MODEL_VERSION,
-                "generation_config": {
-                    "temperature": self.config.temperature,
-                    "top_p": self.config.top_p,
-                    "max_length": self.config.max_length
-                }
-            },
-            created_by_id=user_id
-        )
-        
-        # Save to database
-        db.add(db_content)
-        db.commit()
-        db.refresh(db_content)
-        
-        return db_content
-
-    def batch_generate_content(self, prompts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Generate content for multiple prompts in batch."""
-        
-        results = []
-        
-        for i, prompt_config in enumerate(prompts):
-            try:
-                logger.info(f"Generating content for prompt {i+1}/{len(prompts)}")
-                
-                content = self.generate_content(
-                    prompt=prompt_config.get('prompt', ''),
-                    tone=prompt_config.get('tone', 'Professional'),
-                    industry=prompt_config.get('industry'),
-                    channel=prompt_config.get('channel')
-                )
-                
-                result = {
-                    **prompt_config,
-                    'generated_content': content,
-                    'status': 'success',
-                    'content_length': len(content),
-                    'word_count': len(content.split())
-                }
-                
-            except Exception as e:
-                logger.error(f"Failed to generate content for prompt {i+1}: {str(e)}")
-                result = {
-                    **prompt_config,
-                    'generated_content': '',
-                    'status': 'failed',
-                    'error': str(e),
-                    'content_length': 0,
-                    'word_count': 0
-                }
+                "word_count": len(content.split()),
+                "character_count": len(content),
+                "generated_at": datetime.now().isoformat(),
+                "api_provider": "gemini",
+                "model_version": "gemini-2.0-flash-exp"
+            }
             
-            results.append(result)
-        
-        return results
-
+            if additional_metadata:
+                metadata.update(additional_metadata)
+            
+            content_data = ContentCreate(
+                title=f"Generated {channel or 'content'} - {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                body=content,
+                type=channel or "general",
+                status="draft",
+                ai_generated=True,
+                created_by_id=user_id,
+                metadata=metadata
+            )
+            
+            saved_content = content_crud.create_content(db=db, content_in=content_data, user_id=user_id)
+            logger.info(f"Content saved with ID: {saved_content.id}")
+            return saved_content
+            
+        except Exception as e:
+            logger.error(f"Failed to save content: {str(e)}")
+            raise RuntimeError(f"Failed to save content: {str(e)}")
+    
     def get_model_info(self) -> Dict[str, Any]:
-        """Get information about the loaded model."""
-        
-        if not self.model:
-            return {"status": "not_loaded"}
-        
-        # Calculate model parameters
-        total_params = sum(p.numel() for p in self.model.parameters())
-        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
-        
+        """Get information about the loaded model"""
         return {
-            "status": "loaded",
-            "model_version": self.MODEL_VERSION,
-            "base_model": "HuggingFaceH4/zephyr-7b-beta",
-            "device": self.device,
-            "total_parameters": total_params,
-            "trainable_parameters": trainable_params,
-            "model_path": str(self.model_path),
+            "model_name": "Google Gemini 2.0 Flash",
+            "api_provider": "Google AI",
+            "model_version": "gemini-2.0-flash-exp",
             "available_tones": self.TONES,
             "available_channels": self.CHANNELS,
-            "available_industries": self.INDUSTRIES
+            "available_industries": self.INDUSTRIES,
+            "content_configs": self.content_configs,
+            "generation_config": {
+                "temperature": self.config.temperature,
+                "top_p": self.config.top_p,
+                "top_k": self.config.top_k,
+                "max_output_tokens": self.config.max_output_tokens
+            }
         }
-
-# Create singleton instance (will be initialized when imported)
-_content_generation_service = None
-
-def get_content_generation_service(model_path: Optional[str] = None, 
-                                  config: Optional[GenerationConfig] = None) -> ContentGenerationService:
-    """Get the singleton content generation service."""
-    global _content_generation_service
     
-    if _content_generation_service is None:
-        _content_generation_service = ContentGenerationService(model_path, config)
+    async def health_check_async(self) -> bool:
+        """Check if the service is healthy and ready to generate content"""
+        try:
+            if self.client is None:
+                logger.error("Health check failed: Client is None")
+                return False
+            
+            # Simple test generation with minimal content
+            test_response = await self.client.aio.models.generate_content(
+                model="gemini-2.0-flash-exp",
+                contents="Say 'OK'",
+                config=GenerateContentConfig(
+                    temperature=0.1,
+                    max_output_tokens=5
+                )
+            )
+            
+            # Check if we got a valid response
+            if (test_response and 
+                hasattr(test_response, 'candidates') and 
+                test_response.candidates and 
+                len(test_response.candidates) > 0):
+                
+                candidate = test_response.candidates[0]
+                if (hasattr(candidate, 'content') and 
+                    candidate.content and 
+                    hasattr(candidate.content, 'parts') and
+                    candidate.content.parts and
+                    len(candidate.content.parts) > 0):
+                    
+                    text_content = candidate.content.parts[0].text
+                    if text_content and len(text_content.strip()) > 0:
+                        logger.info("Health check passed: Gemini 2.0 API responding correctly")
+                        return True
+            
+            logger.error("Health check failed: Invalid response structure")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Health check failed with exception: {str(e)}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            return False
     
-    return _content_generation_service
+    def health_check(self) -> bool:
+        """Synchronous wrapper for health check"""
+        try:
+            # Check if we're in an existing event loop
+            import asyncio
+            try:
+                loop = asyncio.get_running_loop()
+                # If we're in an async context, create a task
+                if loop.is_running():
+                    # We're in an async context, so we need to handle this differently
+                    return self._sync_health_check()
+            except RuntimeError:
+                # No running loop, we can create a new one
+                pass
+            
+            return asyncio.run(self.health_check_async())
+        except Exception as e:
+            logger.error(f"Health check wrapper failed: {str(e)}")
+            return False
+    
+    def _sync_health_check(self) -> bool:
+        """Synchronous health check that doesn't use async/await"""
+        try:
+            if self.client is None:
+                return False
+            
+            # Simple sync check - just verify client initialization
+            # We can't do actual API calls in sync context without proper async handling
+            return True
+            
+        except Exception as e:
+            logger.error(f"Sync health check failed: {str(e)}")
+            return False
+
+# Global service instance
+_gemini_service: Optional[GeminiContentGenerationService] = None
+
+def get_gemini_content_generation_service(
+    api_key: Optional[str] = None,
+    config: Optional[GeminiGenerationConfig] = None
+) -> GeminiContentGenerationService:
+    """Get or create Gemini content generation service instance"""
+    global _gemini_service
+    
+    if _gemini_service is None:
+        if api_key is None:
+            api_key = settings.GEMINI_API_KEY
+            if not api_key:
+                raise ValueError("Gemini API key is required")
+        
+        if config is None:
+            config = GeminiGenerationConfig()
+        
+        _gemini_service = GeminiContentGenerationService(api_key, config)
+        
+        # Perform health check
+        if not _gemini_service.health_check():
+            logger.warning("Gemini content generation service health check failed")
+    
+    return _gemini_service
+
+def reset_gemini_content_generation_service():
+    """Reset the global service instance (useful for testing)"""
+    global _gemini_service
+    _gemini_service = None

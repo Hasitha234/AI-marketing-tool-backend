@@ -1,11 +1,17 @@
 import os
+import logging
 from typing import List, Optional
 from pydantic_settings import BaseSettings
 from pydantic import PostgresDsn, Field
 from dotenv import load_dotenv
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Load environment variables from .env file
 load_dotenv()
+logger.info("Loading environment variables from .env file")
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Marketing Tool"
@@ -41,14 +47,34 @@ class Settings(BaseSettings):
     LINKEDIN_CLIENT_ID: str = os.getenv("LINKEDIN_CLIENT_ID", "")
     LINKEDIN_CLIENT_SECRET: str = os.getenv("LINKEDIN_CLIENT_SECRET", "")
 
-    # MODEL SETTINGS
-    MODEL_DIR: str = os.getenv("MODEL_DIR", os.path.join(os.getcwd(), "src", "content_model"))
-    TRAINED_MODEL_PATH: Optional[str] = os.getenv("TRAINED_MODEL_PATH", os.path.join(MODEL_DIR, "zephyr-marketing-model"))
+    # GEMINI API CONFIGURATION
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    if not GEMINI_API_KEY:
+        logger.error("GEMINI_API_KEY environment variable is not set")
+        raise ValueError("GEMINI_API_KEY environment variable must be set")
+    else:
+        logger.info("GEMINI_API_KEY environment variable is set")
+    
+    # GEMINI SPECIFIC SETTINGS
+    GEMINI_MODEL_NAME: str = os.getenv("GEMINI_MODEL_NAME", "gemini-2.0-flash-exp")
+    GEMINI_TEMPERATURE: float = float(os.getenv("GEMINI_TEMPERATURE", "0.7"))
+    GEMINI_TOP_P: float = float(os.getenv("GEMINI_TOP_P", "0.8"))
+    GEMINI_TOP_K: int = int(os.getenv("GEMINI_TOP_K", "40"))
+    GEMINI_MAX_OUTPUT_TOKENS: int = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "1024"))
+    
+    # RATE LIMITING FOR GEMINI (Free tier: 15 requests per minute)
+    GEMINI_RATE_LIMIT_PER_MINUTE: int = int(os.getenv("GEMINI_RATE_LIMIT_PER_MINUTE", "15"))
+    GEMINI_RATE_LIMIT_PER_DAY: int = int(os.getenv("GEMINI_RATE_LIMIT_PER_DAY", "1500"))
+    GEMINI_TOKENS_PER_DAY: int = int(os.getenv("GEMINI_TOKENS_PER_DAY", "1000000"))
 
     # Google Cloud / Dialogflow Configuration
     GOOGLE_CLOUD_PROJECT_ID: str = os.getenv("GOOGLE_CLOUD_PROJECT_ID", "ai-marketing-chatbot-460708")
     if not GOOGLE_CLOUD_PROJECT_ID:
+        logger.error("GOOGLE_CLOUD_PROJECT_ID environment variable is not set")
         raise ValueError("GOOGLE_CLOUD_PROJECT_ID environment variable must be set")
+    else:
+        logger.info("GOOGLE_CLOUD_PROJECT_ID environment variable is set")
+    
     GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", None)
     DIALOGFLOW_LANGUAGE_CODE: str = os.getenv("DIALOGFLOW_LANGUAGE_CODE", "en-US")
     
@@ -73,8 +99,10 @@ class Settings(BaseSettings):
         case_sensitive = True
         env_file = ".env"
 
-settings = Settings()
-settings.SQLALCHEMY_DATABASE_URI = settings.get_database_uri
-
-
-
+try:
+    settings = Settings()
+    settings.SQLALCHEMY_DATABASE_URI = settings.get_database_uri
+    logger.info("Settings loaded successfully")
+except Exception as e:
+    logger.error(f"Failed to load settings: {str(e)}")
+    raise

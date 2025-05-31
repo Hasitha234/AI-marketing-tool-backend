@@ -65,17 +65,25 @@ def get_content_count(
         query = query.filter(Content.ai_generated == ai_generated)
     
     return query.count()
-
+# In app/crud/content.py - Update this function
 def create_content(db: Session, content_in: ContentCreate, user_id: int) -> Content:
-    """Create a new content."""
+    """Create a new content with correct user_id handling"""
     # Convert Pydantic model to dict
-    content_data = content_in.dict(exclude_unset=True)
+    content_data = content_in.model_dump(exclude_unset=True)
     
-    # Add user ID
+    # Ensure user ID is set correctly
     content_data["created_by_id"] = user_id
     
-    # Create Content object
-    db_content = Content(**content_data)
+    # Create Content object - only use fields that exist in your DB
+    db_content = Content(
+        title=content_data["title"],
+        body=content_data["body"],
+        type=content_data.get("type", "general"),
+        status=content_data.get("status", "draft"),
+        ai_generated=content_data.get("ai_generated", True),
+        created_by_id=user_id,
+        generation_params=content_data.get("metadata", {})  # Store metadata in existing field
+    )
     
     # Add to database
     db.add(db_content)
