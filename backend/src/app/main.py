@@ -60,16 +60,6 @@ async def root():
         "status": "online"
     }
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint for monitoring"""
-    logger.debug("Health check requested")
-    return {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "version": "1.0.0"
-    }
-
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Global exception handler with logging"""

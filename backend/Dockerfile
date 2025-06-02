@@ -1,25 +1,24 @@
 # Build stage
-FROM python:3.10 AS builder
+FROM python:3.10-slim as builder
 
 # Set working directory
-WORKDIR /app
+WORKDIR /app/src
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app/src
 
-# Install system dependencies with security updates
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     curl \
     git \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /var/cache/apt/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Create and activate virtual environment
 RUN python -m venv /opt/venv
@@ -28,68 +27,73 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy only requirements first to leverage Docker cache
 COPY requirements.txt .
 
-# Install dependencies with security checks
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip check
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Development stage
-FROM builder AS development
+FROM builder as development
+
+# Install dev dependencies
 RUN pip install --no-cache-dir pytest pytest-asyncio pytest-cov black isort flake8 mypy
 
+# Copy all code for development
+COPY . /app/src/
+
+# Set PYTHONPATH
+ENV PYTHONPATH=/app/src
+
+# Expose port
+EXPOSE 8000
+
+# Run with reload for development
+CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
 # Production stage
-FROM python:3.10 AS production
+FROM python:3.10-slim as production
 
 # Set working directory
-WORKDIR /app
+WORKDIR /app/src
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     TZ=UTC \
-    PATH="/opt/venv/bin:$PATH"
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH=/app/src
 
-# Install runtime dependencies with security updates
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends \
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /var/cache/apt/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 
-# Create necessary directories with proper permissions
-RUN mkdir -p /app/logs /app/models /app/certs /app/tests && \
-    chmod -R 755 /app
+# Create necessary directories
+RUN mkdir -p /app/logs /app/models /app/certs /app/tests
 
 # Copy the service account key (if exists)
 COPY service-account-key.json* /app/certs/
 
-# Copy the backend code
+# Copy all application code
 COPY . .
 
 # Set proper permissions
-RUN chmod -R 755 /app && \
-    find /app -type d -exec chmod 755 {} \; && \
-    find /app -type f -exec chmod 644 {} \;
+RUN chmod -R 755 /app
 
-# Create a non-root user with specific UID/GID
-RUN groupadd -g 1000 appgroup && \
-    useradd -u 1000 -g appgroup -s /bin/bash -m appuser && \
-    chown -R appuser:appgroup /app
-
-# Switch to non-root user
+# Create a non-root user
+RUN adduser --disabled-password --gecos '' appuser \
+    && chown -R appuser:appuser /app
 USER appuser
 
-# Expose the port the app runs on
+# Expose the port
 EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Command to run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+# Run the application
+CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, users, leads, analytics, social, content, chatbot
+from app.api.v1.endpoints import auth, users, leads, analytics, social, content, chatbot, health
 
 api_router = APIRouter()
 
@@ -12,3 +12,4 @@ api_router.include_router(analytics.router, prefix="/analytics", tags=["analytic
 api_router.include_router(social.router, prefix="/social", tags=["social_media"])
 api_router.include_router(content.router, prefix="/content", tags=["content"])
 api_router.include_router(chatbot.router, prefix="/chatbot", tags=["chatbot"])
+api_router.include_router(health.router, tags=["health"])

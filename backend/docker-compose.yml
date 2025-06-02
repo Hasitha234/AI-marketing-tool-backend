@@ -5,12 +5,14 @@ services:
     build:
       context: ..
       dockerfile: backend/Dockerfile
-      target: ${BUILD_TARGET:-development}
+      target: development
     container_name: ai-marketing-api
     ports:
       - "${API_PORT:-8000}:8000"
     volumes:
-      - ../src:/app/src:delegated
+      # Mount source code for hot reloading
+      - ./src:/app/src:delegated
+      # Mount other directories
       - ./logs:/app/logs:delegated
       - ./models:/app/models:delegated
       - ./certs:/app/certs:ro
@@ -24,25 +26,25 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       
       # Database Configuration
-      - POSTGRES_SERVER=${POSTGRES_SERVER:-db}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-ai_marketing}
-      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
-      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/ai_marketing}
+      - POSTGRES_SERVER=${POSTGRES_SERVER}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - DATABASE_URL=${DATABASE_URL}
       
       # Security and API Keys
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - SECRET_KEY=${SECRET_KEY}
       - GOOGLE_CLOUD_PROJECT_ID=${GOOGLE_CLOUD_PROJECT_ID}
       - GOOGLE_APPLICATION_CREDENTIALS=/app/certs/service-account-key.json
       
       # CORS Settings
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-["http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"]}
+      - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"]
+      
+      # Python path
+      - PYTHONPATH=/app
     networks:
       - ai-marketing-network
-    depends_on:
-      db:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 30s
@@ -50,76 +52,7 @@ services:
       retries: 3
       start_period: 40s
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    security_opt:
-      - no-new-privileges:true
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
-
-  db:
-    image: postgres:15-alpine
-    container_name: ai-marketing-db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-ai_marketing}
-      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
-    ports:
-      - "${DB_PORT:-5432}:5432"
-    networks:
-      - ai-marketing-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    security_opt:
-      - no-new-privileges:true
-
-volumes:
-  postgres_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${POSTGRES_DATA_PATH:-./data/postgres}
-      o: bind
 
 networks:
   ai-marketing-network:
     driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16 
