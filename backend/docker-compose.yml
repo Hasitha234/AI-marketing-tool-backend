@@ -5,7 +5,7 @@ services:
     build:
       context: ..
       dockerfile: backend/Dockerfile
-      target: ${BUILD_TARGET:-production}
+      target: ${BUILD_TARGET:-development}
     container_name: ai-marketing-api
     ports:
       - "${API_PORT:-8000}:8000"

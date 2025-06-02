@@ -29,8 +29,12 @@ COPY requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Final stage
-FROM python:3.10-slim
+# Development stage
+FROM builder as development
+RUN pip install --no-cache-dir pytest pytest-asyncio pytest-cov black isort flake8 mypy
+
+# Production stage
+FROM python:3.10-slim as production
 
 # Set working directory
 WORKDIR /app
@@ -76,4 +80,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/api/v1/health || exit 1
 
 # Command to run the application
-CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--reload"] 
+ENTRYPOINT ["uvicorn"]
+CMD ["src.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--reload"] 
