@@ -11,15 +11,39 @@ http://localhost:8000/api/v1
 ```http
 POST /auth/register
 ```
+**Request Body:**
+```json
+{
+    "email": "string",
+    "password": "string",
+    "full_name": "string"
+}
+```
 
 ### Login
 ```http
 POST /auth/login
 ```
-
+**Request Body:**
+```json
+{
+    "username": "string", // email
+    "password": "string"
+}
+```
 **Response:**
-- JWT token for authentication
-- User details
+```json
+{
+    "access_token": "string",
+    "token_type": "bearer"
+}
+```
+
+### Get Current User
+```http
+GET /auth/me
+```
+**Response:** User details
 
 ### Authentication Headers
 ```http
@@ -52,7 +76,7 @@ GET /leads
 ```
 **Parameters:**
 - `skip` (optional): Number of records to skip (default: 0)
-- `limit` (optional): Number of records per page (default: 100)
+- `limit` (optional): Number of records per page (default: 100, max: 100)
 - `status` (optional): Filter by lead status
 - `is_converted` (optional): Filter by conversion status
 - `min_score` (optional): Filter by minimum lead score (0-100)
@@ -66,6 +90,113 @@ GET /leads
     "page": integer,
     "size": integer,
     "pages": integer
+}
+```
+
+### Create Lead
+```http
+POST /leads
+```
+**Request Body:** Lead details
+
+### Get Lead by ID
+```http
+GET /leads/{lead_id}
+```
+
+### Update Lead
+```http
+PUT /leads/{lead_id}
+```
+
+### Delete Lead
+```http
+DELETE /leads/{lead_id}
+```
+**Access:** Admin only
+
+### Lead Scoring
+
+#### Get Lead Score
+```http
+GET /leads/{lead_id}/score
+```
+
+#### Calculate Lead Score
+```http
+POST /leads/{lead_id}/score
+```
+
+#### Get Lead Score History
+```http
+GET /leads/{lead_id}/scores
+```
+**Parameters:**
+- `limit` (optional): Number of historical scores to return (default: 10, max: 100)
+
+#### Score All Leads
+```http
+POST /leads/score-all
+```
+**Access:** Admin only
+
+#### Train Lead Scoring Model
+```http
+POST /leads/score/train-model
+```
+**Parameters:**
+- `retrain` (optional): Force retrain even if model exists (default: false)
+**Access:** Admin only
+
+### Lead Activities
+
+#### Add Lead Activity
+```http
+POST /leads/{lead_id}/activity
+```
+
+#### Get Lead Activities
+```http
+GET /leads/{lead_id}/activities
+```
+**Parameters:**
+- `skip` (optional): Number of records to skip (default: 0)
+- `limit` (optional): Number of records per page (default: 50, max: 100)
+- `activity_type` (optional): Filter by activity type
+
+### Lead Import/Export
+
+#### Upload Leads CSV
+```http
+POST /leads/upload-csv
+```
+**Request:** Multipart form with CSV file
+
+#### Download Scored Leads CSV
+```http
+GET /leads/download-scored-csv
+```
+**Parameters:**
+- `limit` (optional): Number of leads to export (default: 100, max: 1000)
+- `include_empty_scores` (optional): Include leads without scores (default: false)
+
+### Lead Scoring Dashboard
+```http
+GET /leads/scoring-dashboard
+```
+**Parameters:**
+- `limit` (optional): Number of top leads to return (default: 15, max: 100)
+- `days` (optional): Filter leads created within last N days (default: 30, max: 365)
+
+**Response:**
+```json
+{
+    "top_leads": [...],
+    "score_statistics": {...},
+    "model_info": {...},
+    "total_leads": integer,
+    "chart_data": {...},
+    "timestamp": "string"
 }
 ```
 

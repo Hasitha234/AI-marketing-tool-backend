@@ -1,5 +1,5 @@
-# Use Python 3.10 slim image for a smaller footprint
-FROM python:3.10-slim
+# Build stage
+FROM python:3.10-slim as builder
 
 # Set working directory
 WORKDIR /app
@@ -7,11 +7,10 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    TZ=UTC \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Install system dependencies and cleanup in one layer to reduce image size
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
@@ -24,12 +23,33 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy requirements files
-COPY requirements.txt requirements-dev.txt* ./
+# Copy only requirements first to leverage Docker cache
+COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt \
-    && if [ -f requirements-dev.txt ]; then pip install --no-cache-dir -r requirements-dev.txt; fi
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Final stage
+FROM python:3.10-slim
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    TZ=UTC \
+    PATH="/opt/venv/bin:$PATH"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/models /app/certs /app/tests
@@ -44,8 +64,8 @@ COPY . .
 RUN chmod -R 755 /app
 
 # Create a non-root user
-RUN adduser --disabled-password --gecos '' appuser
-RUN chown -R appuser:appuser /app
+RUN adduser --disabled-password --gecos '' appuser \
+    && chown -R appuser:appuser /app
 USER appuser
 
 # Expose the port the app runs on

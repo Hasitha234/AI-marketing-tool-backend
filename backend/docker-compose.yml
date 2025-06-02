@@ -3,17 +3,18 @@ version: '3.8'
 services:
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: backend/Dockerfile
       target: ${BUILD_TARGET:-production}
+    container_name: ai-marketing-api
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     volumes:
-      - ./src:/app/src
-      - ./logs:/app/logs
-      - ./models:/app/models
-      - ./certs:/app/certs
-      - ./tests:/app/tests
+      - ../src:/app/src:delegated
+      - ./logs:/app/logs:delegated
+      - ./models:/app/models:delegated
+      - ./certs:/app/certs:ro
+      - ./tests:/app/tests:delegated
     env_file:
       - .env
     environment:
@@ -36,7 +37,7 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/certs/service-account-key.json
       
       # CORS Settings
-      - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"]
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-["http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"]}
     networks:
       - ai-marketing-network
     depends_on:
@@ -47,6 +48,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
     restart: unless-stopped
     deploy:
       resources:
@@ -61,17 +63,26 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
 
   db:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: ai-marketing-db
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-ai_marketing}
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     networks:
       - ai-marketing-network
     healthcheck:
@@ -79,16 +90,36 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${POSTGRES_DATA_PATH:-./data/postgres}
+      o: bind
 
 networks:
   ai-marketing-network:
-    driver: bridge 
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16 

@@ -1,279 +1,189 @@
-# AI Marketing Tool Development Guide
+# Marketing Tool Development Guide
 
-## 🛠️ Development Setup
-
-### Prerequisites
-
-1. **Python Environment**
-   - Python 3.8 or higher
-   - pip (Python package manager)
-   - virtualenv or venv for isolated environments
-
-2. **Database**
-   - PostgreSQL 12.0 or higher
-   - pgAdmin (optional, for database management)
-
-3. **Development Tools**
-   - Git
-   - Docker & Docker Compose
-   - Your preferred IDE (VSCode recommended)
-   - Postman or similar API testing tool
-
-4. **API Keys**
-   - OpenAI API key
-   - HuggingFace token
-   - Social media platform API keys (Twitter, Facebook, LinkedIn)
-   - Google Cloud Project credentials (for Dialogflow)
-
-### Initial Setup
-
-1. **Clone the Repository**
-   ```bash
-   git clone <repository-url>
-   cd AI-marketing-tool
-   ```
-
-2. **Create Virtual Environment**
-   ```bash
-   python -m venv venv
-   # On Windows
-   .\venv\Scripts\activate
-   # On Unix or MacOS
-   source venv/bin/activate
-   ```
-
-3. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Environment Configuration**
-   Create `.env` file in the root directory:
-   ```env
-   # Database Configuration
-   POSTGRES_SERVER=localhost
-   POSTGRES_USER=your_user
-   POSTGRES_PASSWORD=your_password
-   POSTGRES_DB=ai_marketing
-   POSTGRES_PORT=5432
-
-   # Security
-   SECRET_KEY=your_secure_secret_key
-
-   # API Keys
-   OPENAI_API_KEY=your_openai_api_key
-   HUGGINGFACE_TOKEN=your_huggingface_token
-
-   # Social Media API Keys
-   TWITTER_API_KEY=your_twitter_api_key
-   TWITTER_API_SECRET=your_twitter_api_secret
-   FACEBOOK_APP_ID=your_facebook_app_id
-   FACEBOOK_APP_SECRET=your_facebook_app_secret
-   LINKEDIN_CLIENT_ID=your_linkedin_client_id
-   LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
-
-   # Google Cloud / Dialogflow
-   GOOGLE_CLOUD_PROJECT_ID=your_project_id
-   ```
-
-5. **Database Setup**
-   ```bash
-   # Start PostgreSQL service
-   docker-compose up -d db
-
-   # Run migrations
-   alembic upgrade head
-
-   # Seed initial data (if needed)
-   python src/scripts/seed_data.py
-   ```
-
-## 🏗️ Project Structure
-
+## Project Structure
 ```
-AI-marketing-tool/
-├── backend/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── api/
-│   │   │   │   └── v1/
-│   │   │   │       └── endpoints/
-│   │   │   ├── core/
-│   │   │   ├── crud/
-│   │   │   ├── db/
-│   │   │   ├── models/
-│   │   │   ├── schemas/
-│   │   │   └── services/
-│   │   ├── scripts/
-│   │   └── tests/
-│   ├── alembic/
-│   └── requirements.txt
-├── docker/
-├── docs/
-└── docker-compose.yml
+backend/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── v1/
+│   │   │       └── endpoints/
+│   │   ├── core/
+│   │   ├── crud/
+│   │   ├── db/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   └── utils/
+│   ├── ml_models/
+│   ├── tests/
+│   └── docs/
+├── alembic/
+└── docker/
 ```
 
-## 🧪 Testing
+## Prerequisites
+- Python 3.8+
+- Docker and Docker Compose
+- PostgreSQL 13+
+- Redis (for caching and rate limiting)
 
-### Running Tests
+## Setup Development Environment
+
+1. Clone the repository:
 ```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest src/tests/test_lead_scoring.py
-
-# Run with coverage report
-pytest --cov=src
+git clone <repository-url>
+cd AI-marketing-tool-backend
 ```
 
-### Test Structure
-- `tests/unit/`: Unit tests for individual components
-- `tests/integration/`: Integration tests
-- `tests/api/`: API endpoint tests
-- `tests/services/`: Service layer tests
+2. Create and activate virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+.\venv\Scripts\activate   # Windows
+```
 
-## 🔄 Development Workflow
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-1. **Create Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+4. Set up environment variables:
+Create a `.env` file in the backend directory with the following variables:
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/marketing_tool
+REDIS_URL=redis://localhost:6379/0
+SECRET_KEY=your-secret-key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
 
-2. **Code Style**
-   - Follow PEP 8 guidelines
-   - Use type hints
-   - Document functions and classes
-   - Keep functions focused and small
+5. Initialize the database:
+```bash
+alembic upgrade head
+```
 
-3. **Pre-commit Checks**
-   ```bash
-   # Run linting
-   flake8 src
+## Running the Application
 
-   # Run type checking
-   mypy src
+### Development Mode
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-   # Run tests
-   pytest
-   ```
+### Using Docker
+```bash
+docker-compose up --build
+```
+## Database Migrations
 
-4. **Commit Guidelines**
-   ```
-   feat: Add new feature
-   fix: Bug fix
-   docs: Documentation changes
-   style: Code style changes
-   refactor: Code refactoring
-   test: Add or modify tests
-   chore: Routine tasks, maintenance
-   ```
+### Creating a New Migration
+```bash
+alembic revision --autogenerate -m "description"
+```
 
-## 🚀 Local Development
+### Applying Migrations
+```bash
+alembic upgrade head
+```
 
-1. **Start Development Server**
-   ```bash
-   # Start all services
-   docker-compose up -d
+### Rolling Back Migrations
+```bash
+alembic downgrade -1  # Roll back one migration
+```
 
-   # Or start individual services
-   python -m src.app.main
-   ```
+## Code Style and Linting
 
-2. **Access Points**
-   - API: http://localhost:8000
-   - Swagger Docs: http://localhost:8000/docs
-   - ReDoc: http://localhost:8000/redoc
+### Running Linters
+```bash
+flake8
+black .
+isort .
+```
 
-3. **Hot Reload**
-   The development server includes hot reload by default
+### Pre-commit Hooks
+The project uses pre-commit hooks for code quality. Install them with:
+```bash
+pre-commit install
+```
 
-## 🔍 Debugging
+## API Documentation
 
-1. **Logging**
-   - Logs are stored in `logs/`
-   - Development logs: `logs/development.log`
-   - Error logs: `logs/error.log`
+### Swagger UI
+Access the interactive API documentation at:
+```
+http://localhost:8000/docs
+```
 
-2. **Debug Configuration (VSCode)**
-   ```json
-   {
-     "version": "0.2.0",
-     "configurations": [
-       {
-         "name": "Python: FastAPI",
-         "type": "python",
-         "request": "launch",
-         "module": "uvicorn",
-         "args": ["src.app.main:app", "--reload"],
-         "jinja": true
-       }
-     ]
-   }
-   ```
+### ReDoc
+Alternative API documentation at:
+```
+http://localhost:8000/redoc
+```
 
-## 📊 Monitoring
+## Key Features Implementation
 
-1. **Performance Monitoring**
-   - API response times
-   - Database query performance
-   - Memory usage
-   - Error rates
+### Authentication
+- JWT-based authentication
+- Role-based access control
+- Rate limiting middleware
 
-2. **Tools**
-   - Prometheus for metrics
-   - Grafana for visualization
-   - Sentry for error tracking
+### Lead Management
+- Lead scoring system
+- Lead tracking and analytics
+- Conversion tracking
 
-## 🔐 Security Practices
+### Social Media Integration
+- Multi-platform support
+- Post scheduling
+- Analytics and reporting
 
-1. **Code Security**
-   - No secrets in code
-   - Input validation
-   - SQL injection prevention
-   - XSS protection
+### Content Generation
+- AI-powered content creation
+- Template management
+- Content optimization
 
-2. **API Security**
-   - JWT authentication
-   - Rate limiting
-   - CORS configuration
-   - Input sanitization
+### Analytics
+- Real-time analytics
+- Custom reporting
+- Performance metrics
 
-## 📦 Deployment
+## Deployment
 
-1. **Build Process**
-   ```bash
-   # Build Docker images
-   docker-compose build
+### Docker Deployment
+1. Build the Docker image:
+```bash
+docker build -t marketing-tool-backend .
+```
 
-   # Run production setup
-   docker-compose -f docker-compose.prod.yml up -d
-   ```
+2. Run the container:
+```bash
+docker run -p 8000:8000 marketing-tool-backend
+```
 
-2. **Environment Specific Configs**
-   - Development: `.env.development`
-   - Staging: `.env.staging`
-   - Production: `.env.production`
+## Monitoring and Logging
 
-## 🤝 Contributing
+### Logging
+- Application logs are stored in `src/logs/`
+- Log rotation is configured
+- Different log levels for development and production
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+### Monitoring
+- Health check endpoints
+- Performance metrics
+- Error tracking
 
-### Pull Request Process
-1. Update documentation
-2. Add/update tests
-3. Ensure CI passes
-4. Get code review
-5. Merge after approval
+## Troubleshooting
 
-## 📚 Additional Resources
+### Common Issues
+1. Database connection issues
+   - Check DATABASE_URL in .env
+   - Verify PostgreSQL is running
 
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
-- [Alembic Documentation](https://alembic.sqlalchemy.org/)
-- [Docker Documentation](https://docs.docker.com/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/) 
+3. Authentication issues
+   - Verify SECRET_KEY is set
+   - Check token expiration time
+
+### Getting Help
+- Check the logs in `src/logs/`
+- Review the API documentation

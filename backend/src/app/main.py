@@ -28,7 +28,6 @@ app = FastAPI(
     The API provides endpoints for lead management, lead scoring, analytics, and more.
     """,
     version="1.0.0",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url="/docs",
     redoc_url="/redoc",
 )
