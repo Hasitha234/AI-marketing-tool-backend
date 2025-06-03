@@ -36,8 +36,6 @@ class Settings(BaseSettings):
         """Construct database URI from components."""
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}?sslmode=require"
     
-    # EXTERNAL APIS
-    HUGGINGFACE_TOKEN: Optional[str] = os.getenv("HUGGINGFACE_TOKEN", "")
 
     # SOCIAL MEDIA API KEYS
     TWITTER_API_KEY: str = os.getenv("TWITTER_API_KEY", "")

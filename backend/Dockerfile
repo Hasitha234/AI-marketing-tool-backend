@@ -2,7 +2,7 @@
 FROM python:3.10-slim as builder
 
 # Set working directory
-WORKDIR /app/src
+WORKDIR /app
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -36,8 +36,8 @@ FROM builder as development
 # Install dev dependencies
 RUN pip install --no-cache-dir pytest pytest-asyncio pytest-cov black isort flake8 mypy
 
-# Copy all code for development
-COPY . /app/src/
+# Copy all contents to /app/ (this puts src/ at /app/src/)
+COPY . /app/
 
 # Set PYTHONPATH
 ENV PYTHONPATH=/app/src
@@ -52,7 +52,7 @@ CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--re
 FROM python:3.10-slim as production
 
 # Set working directory
-WORKDIR /app/src
+WORKDIR /app
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -71,14 +71,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 
+# Copy all contents to /app/
+COPY . /app/
+
 # Create necessary directories
 RUN mkdir -p /app/logs /app/models /app/certs /app/tests
 
-# Copy the service account key (if exists)
-COPY service-account-key.json* /app/certs/
-
-# Copy all application code
-COPY . .
+# Copy service account key if it exists (optional)
+# Note: Make sure service-account-key.json is in the backend directory or adjust path
 
 # Set proper permissions
 RUN chmod -R 755 /app
