@@ -8,7 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.db.session import get_db
+from app.db.session import get_db, SessionLocal
 from app.models.user import User
 
 # Password hashing
@@ -33,7 +33,24 @@ def create_access_token(subject: Union[str, Any], expires_delta: Optional[timede
     else:
         expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    to_encode = {"exp": expire, "sub": str(subject)}
+    # Get user from database to include role
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.email == subject).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+            )
+        to_encode = {
+            "exp": expire,
+            "sub": str(subject),
+            "role": user.role,
+            "is_active": user.is_active
+        }
+    finally:
+        db.close()
+
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -42,6 +59,9 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         token_data = payload.get("sub")
+        role = payload.get("role")
+        is_active = payload.get("is_active")
+        
         if token_data is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -62,6 +82,15 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
             detail="User not found",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Verify that the user's role and active status match the token
+    if user.role != role or user.is_active != is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User status has changed. Please log in again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

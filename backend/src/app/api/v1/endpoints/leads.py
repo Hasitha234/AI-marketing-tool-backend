@@ -12,7 +12,7 @@ from app.api.dependencies import get_db
 from app.core.security import get_current_user
 from app.core.permissions import allow_admin
 from app.models.user import User
-from app.models.lead import Lead, LeadScore, LeadActivity  # Import the SQLAlchemy models directly
+from app.models.lead import Lead
 from app.services.lead_scoring import LeadScoringService
 from app.crud import lead as lead_crud
 from app.schemas.lead import (
