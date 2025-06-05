@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Float, 
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base_class import Base
-from app.models.user import User
 
 class ChatbotSession(Base):
     """Model for chatbot conversation sessions"""
@@ -15,7 +14,7 @@ class ChatbotSession(Base):
     ended_at = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
     
-    # Relationships
+    # Relationships - use string references
     user = relationship("User", back_populates="chatbot_sessions")
     messages = relationship("ChatbotMessage", back_populates="session", cascade="all, delete-orphan")
 
@@ -33,7 +32,7 @@ class ChatbotMessage(Base):
     confidence = Column(Float, nullable=True)
     timestamp = Column(DateTime, nullable=False, server_default=func.now())
     
-    # Relationships
+    # Relationships - use string references
     session = relationship("ChatbotSession", back_populates="messages")
     user = relationship("User", back_populates="chatbot_messages")
 

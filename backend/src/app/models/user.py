@@ -16,11 +16,11 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    # Relationships
-    social_campaigns = relationship("SocialCampaign", back_populates="created_by")
-    social_accounts = relationship("SocialAccount", back_populates="created_by")
-    chatbot_sessions = relationship("ChatbotSession", back_populates="user")
-    chatbot_messages = relationship("ChatbotMessage", back_populates="user")
-    contents = relationship("Content", back_populates="created_by")
+    # Relationships - use string references to avoid circular imports
+    social_campaigns = relationship("SocialCampaign", back_populates="created_by", lazy="dynamic")
+    social_accounts = relationship("SocialAccount", back_populates="created_by", lazy="dynamic")
+    chatbot_sessions = relationship("ChatbotSession", back_populates="user", lazy="dynamic")
+    chatbot_messages = relationship("ChatbotMessage", back_populates="user", lazy="dynamic")
     
- 
+    # Fix: Use string reference and remove foreign_keys parameter
+    contents = relationship("Content", back_populates="created_by", lazy="dynamic")

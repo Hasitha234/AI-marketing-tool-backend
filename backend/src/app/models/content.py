@@ -21,7 +21,7 @@ class Content(Base):
     content_metadata = Column(JSON, nullable=True)  
     
     # Creator info
-    created_by_id = Column(Integer, ForeignKey("users.id"))  # Updated to match User table name
+    created_by_id = Column(Integer, ForeignKey("users.id"))
     
     # Optional fields
     target_audience = Column(JSON, nullable=True)
@@ -31,5 +31,5 @@ class Content(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    # Relationships
-    created_by = relationship("User", back_populates="contents")
+    # Relationships - use string reference to avoid circular imports
+    created_by = relationship("User", back_populates="contents", lazy="select")
