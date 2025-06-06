@@ -1,7 +1,12 @@
 import setuptools
+import os
 
-with open("README.md", "r") as f:
-    long_description = f.read()
+# Read README.md if it exists, otherwise use a default description
+try:
+    with open("README.md", "r") as f:
+        long_description = f.read()
+except FileNotFoundError:
+    long_description = "AI-powered marketing tool backend"
 
 __version__ = '0.0.0'
 

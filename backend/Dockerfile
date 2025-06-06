@@ -24,8 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy only requirements first to leverage Docker cache
-COPY requirements.txt .
+# Copy source code and requirements
+COPY . .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
