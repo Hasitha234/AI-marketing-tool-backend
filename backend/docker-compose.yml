@@ -1,9 +1,8 @@
+# Fixed docker-compose.yml
+
 services:
   api:
-    build:
-      context: .  
-      dockerfile: Dockerfile
-      target: development
+    image: zuko98/ai-marketing-api:latest
     container_name: ai-marketing-api
     ports:
       - "${API_PORT:-8000}:8000"
@@ -13,10 +12,11 @@ services:
       # Mount other directories from backend
       - ./logs:/app/logs:delegated
       - ./models:/app/models:delegated
-      - ./certs:/app/certs:ro
       - ./tests:/app/tests:delegated
+      # FIXED: Mount the service account key file correctly
+      - ./service-account-key.json:/app/service-account-key.json:ro
     env_file:
-      - .env  # Corrected path - just .env since we're in backend folder
+      - .env
     environment:
       # Environment
       - ENVIRONMENT=${ENVIRONMENT:-development}
@@ -34,7 +34,14 @@ services:
       # Security and API Keys
       - SECRET_KEY=${SECRET_KEY}
       - GOOGLE_CLOUD_PROJECT_ID=${GOOGLE_CLOUD_PROJECT_ID}
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/certs/service-account-key.json
+      # FIXED: Correct path inside container
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account-key.json
+      
+      # Dialogflow Configuration
+      - DIALOGFLOW_LANGUAGE_CODE=${DIALOGFLOW_LANGUAGE_CODE:-en-US}
+      - CHATBOT_SESSION_TIMEOUT=${CHATBOT_SESSION_TIMEOUT:-1800}
+      - CHATBOT_MAX_MESSAGE_LENGTH=${CHATBOT_MAX_MESSAGE_LENGTH:-1000}
+      - CHATBOT_CONFIDENCE_THRESHOLD=${CHATBOT_CONFIDENCE_THRESHOLD:-0.5}
       
       # CORS Settings
       - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"]

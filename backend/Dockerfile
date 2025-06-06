@@ -77,9 +77,6 @@ COPY . /app/
 # Create necessary directories
 RUN mkdir -p /app/logs /app/models /app/certs /app/tests
 
-# Copy service account key if it exists (optional)
-# Note: Make sure service-account-key.json is in the backend directory or adjust path
-
 # Set proper permissions
 RUN chmod -R 755 /app
 
