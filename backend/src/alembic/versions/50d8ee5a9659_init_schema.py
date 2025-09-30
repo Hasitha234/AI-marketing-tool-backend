@@ -1,8 +1,8 @@
-"""Add chatbot relationships to User model
+"""init schema
 
-Revision ID: b6c3ae23d091
-Revises: e024c95d9fa9
-Create Date: 2025-05-23 15:06:02.201535
+Revision ID: 50d8ee5a9659
+Revises: 
+Create Date: 2025-09-30 19:52:47.821863
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b6c3ae23d091'
-down_revision: Union[str, None] = 'e024c95d9fa9'
+revision: str = '50d8ee5a9659'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -22,7 +22,7 @@ asyncpg==0.29.0
 # ========================
 python-jose[cryptography]==3.3.0
 passlib==1.7.4
-bcrypt==3.2.2
+bcrypt==4.0.1
 
 # ========================
 # AI & ML (CUDA 12.8 Compatible)
