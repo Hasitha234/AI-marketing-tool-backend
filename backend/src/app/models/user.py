@@ -21,6 +21,7 @@ class User(Base):
     social_accounts = relationship("SocialAccount", back_populates="created_by", lazy="dynamic")
     chatbot_sessions = relationship("ChatbotSession", back_populates="user", lazy="dynamic")
     chatbot_messages = relationship("ChatbotMessage", back_populates="user", lazy="dynamic")
+    pricing_recommendations = relationship("PricingRecommendation", back_populates="user", lazy="dynamic")
     
     # Fix: Use string reference and remove foreign_keys parameter
     contents = relationship("Content", back_populates="created_by", lazy="dynamic")

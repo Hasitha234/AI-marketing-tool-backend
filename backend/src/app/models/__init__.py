@@ -5,6 +5,7 @@ from app.db.base_class import Base
 from .user import User
 from .content import Content
 from .chatbot import ChatbotSession, ChatbotMessage, FAQ, ChatbotAnalytics
+from .pricing import PricingRecommendation
 
 # If you have other models, import them here in dependency order
 # from .social_campaign import SocialCampaign  
@@ -19,4 +20,5 @@ __all__ = [
     "ChatbotMessage",
     "FAQ",
     "ChatbotAnalytics",
+    "PricingRecommendation",
 ]
